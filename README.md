@@ -1,6 +1,6 @@
 # Schedule-Bot-Discord
 
 #command 
-add schedule = !addtugas <name> | <date yyyy-mm-dd HH:MM>
-dell schedule = !deltugas <nama>
-show schedule = !tugas 
+add schedule = /addtugas 
+dell schedule = /deltugas
+show schedule = /tugas 
