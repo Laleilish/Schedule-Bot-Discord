@@ -1,15 +1,16 @@
 import discord
+from discord import app_commands
 from discord.ext import commands
 import json
 from datetime import datetime
-import os 
+import os
 from keep_alive import keep_alive
 
 intents = discord.Intents.default()
-intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 FILE = "tugas.json"
+ALLOWED_CHANNEL_ID = "Channel ID"
 
 
 def load_tugas():
@@ -28,12 +29,24 @@ def save_tugas(tugas):
 @bot.event
 async def on_ready():
     print(f"✅ Bot aktif {bot.user}")
-
-
-@bot.command(name="addtugas")
-async def tambahtugas(ctx, *, arg):
     try:
-        nama, deadline = [x.strip() for x in arg.split("|")]
+        synced = await bot.tree.sync()
+        print(f"✅ {len(synced)} slash command berhasil disinkronisasi.")
+    except Exception as e:
+        print(f"❌ Gagal sync: {e}")
+
+
+# ========== /addtugas ==========
+@bot.tree.command(name="addtugas", description="Tambah tugas ke daftar")
+@app_commands.describe(nama="Nama tugas",
+                       deadline="Deadline format YYYY-MM-DD HH:MM")
+async def addtugas(interaction: discord.Interaction, nama: str, deadline: str):
+    if interaction.channel.id != ALLOWED_CHANNEL_ID:
+        await interaction.response.send_message(
+            "Di sini bang <Channel ID>", ephemeral=True)
+        return
+
+    try:
         dt = datetime.strptime(deadline, "%Y-%m-%d %H:%M")
         tugas = load_tugas()
         tugas.append({
@@ -42,31 +55,48 @@ async def tambahtugas(ctx, *, arg):
             "waktu": dt.strftime("%H:%M")
         })
         save_tugas(tugas)
-        await ctx.send(
-            f"✅ Tugas **'{nama}'** ditambahkan!\n📅 Deadline: `{dt.strftime('%Y-%m-%d %H:%M')}`"
-        )
+
+        await interaction.response.send_message(
+            f"✅ Tugas **'{nama}'** ditambahkan!\n📅 Deadline: `{dt.strftime('%Y-%m-%d %H:%M')}`",
+            ephemeral=True)
     except:
-        await ctx.send(
-            "⚠️ Format salah! Contoh: `!addtugas PBO Bab 5 | 2025-04-15 23:59`"
-        )
+        await interaction.response.send_message(
+            "⚠️ Format deadline salah! Contoh: `2025-04-15 23:59`",
+            ephemeral=True)
 
 
-@bot.command(name="deltugas")
-async def hapustugas(ctx, *, nama):
+# ========== /deltugas ==========
+@bot.tree.command(name="deltugas", description="Hapus tugas dari daftar")
+@app_commands.describe(nama="Nama tugas yang mau dihapus")
+async def deltugas(interaction: discord.Interaction, nama: str):
+    if interaction.channel.id != ALLOWED_CHANNEL_ID:
+        await interaction.response.send_message(
+            "Di sini bang <Channel ID>", ephemeral=True)
+        return
+
     tugas = load_tugas()
     baru = [t for t in tugas if t["nama"].lower() != nama.lower()]
     if len(baru) < len(tugas):
         save_tugas(baru)
-        await ctx.send(f"🗑️ Tugas **'{nama}'** berhasil dihapus.")
+        await interaction.response.send_message(
+            f"🗑️ Tugas **'{nama}'** berhasil dihapus.", ephemeral=True)
     else:
-        await ctx.send(f"⚠️ Tugas **'{nama}'** gak ditemukan.")
+        await interaction.response.send_message(
+            f"⚠️ Tugas **'{nama}'** gak ditemukan.", ephemeral=True)
 
 
-@bot.command(name="tugas")
-async def tugaskelas(ctx):
+# ========== /tugas ==========
+@bot.tree.command(name="tugas", description="Lihat daftar tugas bulan ini")
+async def tugaskelas(interaction: discord.Interaction):
+    if interaction.channel.id != ALLOWED_CHANNEL_ID:
+        await interaction.response.send_message(
+            "Di sini bang <Channel ID>", ephemeral=True)
+        return
+
     tugas = load_tugas()
     if not tugas:
-        await ctx.send("📭 Belum ada tugas yang dicatat.")
+        await interaction.response.send_message(
+            "📭 Belum ada tugas yang dicatat.", ephemeral=True)
         return
 
     now = datetime.now()
@@ -80,7 +110,8 @@ async def tugaskelas(ctx):
     ]
 
     if not tugas_bulan_ini:
-        await ctx.send("🎉 Tidak ada tugas untuk bulan ini!")
+        await interaction.response.send_message(
+            "🎉 Tidak ada tugas untuk bulan ini!", ephemeral=True)
         return
 
     tugas_bulan_ini = sorted(tugas_bulan_ini,
@@ -99,7 +130,8 @@ async def tugaskelas(ctx):
                         value=f"`{waktu}` | **{nama_tugas}**",
                         inline=False)
 
-    await ctx.send(embed=embed)
+    await interaction.response.send_message(embed=embed)
+
 
 keep_alive()
 bot.run(os.getenv("SECRET_TOKEN"))
