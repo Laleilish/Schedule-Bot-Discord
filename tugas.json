@@ -1,0 +1,34 @@
+{
+    "tugas": [
+        {
+            "nama": "UTS STRUKDAT",
+            "deadline": "2025-04-17",
+            "waktu": "23:59"
+        },
+        {
+            "nama": "QUIZ MATDIS",
+            "deadline": "2025-04-13",
+            "waktu": "14:00"
+        },
+        {
+            "nama": "RKPL - UTS INDIVIDU",
+            "deadline": "2025-04-11",
+            "waktu": "07:00"
+        },
+        {
+            "nama": "RKPL - UTS KELOMPOK",
+            "deadline": "2025-04-14",
+            "waktu": "16:00"
+        },
+        {
+            "nama": "STRUKDAT - PERTEMUAN 6-7",
+            "deadline": "2025-04-12",
+            "waktu": "07:00"
+        },
+        {
+            "nama": "APRSENI - DRAMA",
+            "deadline": "2025-04-23",
+            "waktu": "00:00"
+        }
+    ]
+}
