@@ -3,14 +3,14 @@ from discord import app_commands
 from discord.ext import commands
 import json
 from datetime import datetime
+from health_check import start_health_check
 import os
-from keep_alive import keep_alive
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 FILE = "tugas.json"
-ALLOWED_CHANNEL_ID = "Channel ID"
+ALLOWED_CHANNEL_ID = int(os.getenv("ALLOWED_CHANNEL_ID"))
 
 
 def load_tugas():
@@ -132,6 +132,5 @@ async def tugaskelas(interaction: discord.Interaction):
 
     await interaction.response.send_message(embed=embed)
 
-
-keep_alive()
+start_health_check()
 bot.run(os.getenv("SECRET_TOKEN"))
